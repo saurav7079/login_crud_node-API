@@ -131,8 +131,73 @@ const getUserById = async (req, res) => {
             message: err.message
         });
     }
-};
+}
 
 
+// **New: Update User Function**
+const updateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updatedData = req.body;
 
-module.exports = { signup, login, logout, getUserById, getAllUsers };
+        // Check if user exists
+        const user = await UserSchema.findById(id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // Update the user with new data
+        const updatedUser = await UserSchema.findByIdAndUpdate(id, updatedData, {
+            new: true, // Return the updated document
+            runValidators: true // Run schema validations
+        });
+
+        updatedUser.password = undefined; // Remove password field from response
+
+        res.json({
+            success: true,
+            message: "User updated successfully",
+            user: updatedUser
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+}
+
+
+// **New: Delete User Function**
+const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Check if user exists
+        const user = await UserSchema.findById(id)
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // Delete the user
+        await UserSchema.findByIdAndDelete(id)
+
+        res.json({
+            success: true,
+            message: "User deleted successfully"
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message
+        })
+    }
+}
+
+module.exports = { signup, login, logout, getUserById, getAllUsers, updateUser, deleteUser }
